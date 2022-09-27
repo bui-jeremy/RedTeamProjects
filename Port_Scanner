@@ -1,0 +1,30 @@
+import socket # connect to IP 
+import threading # print lock
+import concurrent.futures # threading the loop that scans ports
+import colorama # color application for visual
+from colorama import Fore
+colorama.init()
+
+print(Fore.RED + "Welcome to a simple port scanner application! Enter any IP address or domain to check the open ports. \n" + Fore.CYAN)
+print_lock = threading.Lock()
+val = 0
+while (val != 1):
+    val = input("To STOP program, type '1'. To CONTINUE program, type '0' : ")
+    if (val == "1"):
+        break
+    ip = input("Enter the IP to scan: ")
+
+    def scan(ip, port): 
+        scanner = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # use TCP protocol
+        scanner.settimeout(1)
+        try:
+            scanner.connect((ip, port))
+            scanner.close()
+            with print_lock: # will not print at same time with multiple threads running
+                print(Fore.WHITE + ip + Fore.GREEN + ", port open: " + Fore.WHITE + f"[{port}]" + Fore.LIGHTCYAN_EX)
+        except:
+            pass
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor: 
+        for port in range(1000):
+            executor.submit(scan, ip, port + 1)
